@@ -66,7 +66,7 @@ get_classifier_data <- function( positive, negative, train_pct = 0.9 ){
   ind_pos <- 1:length(positive)
   ind_neg <- length(positive) + 1:length(negative)
   all_tokens <- c( tokenize_docs(positive), tokenize_docs(negative) )
-  term_freq <- dict()
+  term_freq <- collections::dict()
   term_freq <- fill_term_freq(all_tokens[ind_pos], term_freq, 1)
   term_freq <- fill_term_freq(all_tokens[ind_neg], term_freq, 0)
   
