@@ -66,10 +66,10 @@ tokenize_docs <- function( docs ) {
 #' @export
 #'
 #' @examples
-#' vocab.docs( c('First entry of the doc,', 'Second entry of the doc.') )
-vocab.docs <- function( docs ){
+#' vocab_docs( c('First entry of the doc,', 'Second entry of the doc.') )
+vocab_docs <- function( docs ){
   doc_tokens <- tokenize_docs( docs )
-  return( vocab.tokens( doc_tokens ) )
+  return( vocab_tokens( doc_tokens ) )
 }
 
 #' Create Vocab for Tokens
@@ -81,13 +81,10 @@ vocab.docs <- function( docs ){
 #' @export
 #'
 #' @examples
-#' vocab.tokens( list( c( 'first', 'entr', 'doc' ), c('second', 'entr', 'doc') ) )
-vocab.tokens <- function( tokens ){
-  vocab <- c()
-  for( entry_tokens in doc_tokens ){
-    vocab <- base::union( entry_tokens, vocab )
-  }
-  return(vocab)
+#' vocab_tokens( list( c( 'first', 'entr', 'doc' ), c('second', 'entr', 'doc') ) )
+vocab_tokens <- function( tokens ){
+  all_tokens <- purrr::flatten( tokens )
+  return( unique(all_tokens) )
 }
 
 #' Token Counts
@@ -100,8 +97,8 @@ vocab.tokens <- function( tokens ){
 #'
 #' @examples
 #' doc_tokens <- tokenize_docs( c('First entry of the doc,', 'Second entry of the doc.') )
-#' token_counts(doc_tokens)
-token_counts <- function( doc_tokens ) {
+#' count_tokens(doc_tokens)
+count_tokens <- function( doc_tokens ) {
   class_tokens <- purrr::flatten( doc_tokens )
   return( c( 'Ntokens' = length( class_tokens ),
              'Utokens' = length( unique( class_tokens ) ) ) )

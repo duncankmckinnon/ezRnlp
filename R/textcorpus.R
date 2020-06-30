@@ -1,6 +1,6 @@
 Corpus <- function( documents, docnames = NULL ){
   documents <- validate_documents( documents )
-  docnames <- validate_document_names( docnames, docnames )
+  docnames <- validate_document_names( docnames, documents )
   return( new_corpus( documents, docnames ) )
 }
 
@@ -14,7 +14,7 @@ new_corpus <- function( documents, docnames ){
   names( documents ) <- docnames
   documentCounts <- sapply(documents, length, USE.NAMES = TRUE, simplify = TRUE)
   tokens <- sapply(documents, tokenize_docs, USE.NAMES = TRUE, simplify = FALSE)
-  tokenCounts <- sapply(tokens, token_counts, USE.NAMES = TRUE, simplify = FALSE)
+  tokenCounts <- sapply(tokens, count_tokens, USE.NAMES = TRUE, simplify = FALSE)
   return( structure( list('tokens' = tokens, 
                           'tokenCounts' = tokenCounts, 
                           'documentNames' = docnames, 
@@ -68,5 +68,5 @@ length.Corpus <- function(obj){
 }
 
 unique.Corpus <- function(obj){
-  return( vocab.tokens( obj$tokens ) )
+  return( vocab_tokens( obj$tokens ) )
 }
