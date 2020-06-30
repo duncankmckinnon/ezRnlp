@@ -60,15 +60,29 @@ tokenize_docs <- function( docs ) {
 #' Create Vocab for Docs
 #' @description collect all unique tokens in the full set of docs which serve as the base vocabulary
 #' for the corpus.  Returns a character vector of the unique tokens across all entries in the docs.
-#' @param doc_tokens a vector or list of text samples
+#' @param docs a vector or list of text samples
 #'
 #' @return a character vector containing each unique token entry that appears in the docs.
 #' @export
 #'
 #' @examples
-#' create_vocab( c('First entry of the doc,', 'Second entry of the doc.') )
-create_vocab <- function( docs ){
+#' vocab.docs( c('First entry of the doc,', 'Second entry of the doc.') )
+vocab.docs <- function( docs ){
   doc_tokens <- tokenize_docs( docs )
+  return( vocab.tokens( doc_tokens ) )
+}
+
+#' Create Vocab for Tokens
+#' @description collect all unique tokens in the full set of tokens.  
+#' Returns a character vector of the unique tokens across all entries.
+#' @param tokens a list of tokenized entries
+#'
+#' @return a character vector containing each unique token entry that appears in tokenized document.
+#' @export
+#'
+#' @examples
+#' vocab.tokens( list( c( 'first', 'entr', 'doc' ), c('second', 'entr', 'doc') ) )
+vocab.tokens <- function( tokens ){
   vocab <- c()
   for( entry_tokens in doc_tokens ){
     vocab <- base::union( entry_tokens, vocab )
@@ -76,21 +90,20 @@ create_vocab <- function( docs ){
   return(vocab)
 }
 
-
-#' Class Counts
-#' @description collects the length of total tokens (N),
-#' and the number of unique tokens (V) in the collection of documents
+#' Token Counts
+#' @description collects the total number of tokens (Ntokens),
+#' and the number of unique tokens (Utokens) in the collection of documents
 #' @param doc_tokens the tokens in the document
 #'
-#' @return a named vector with total token count 'N' and unique token count 'V'
+#' @return a named vector with total token count 'Ntokens' and unique token count 'Utokens'
 #' @export
 #'
 #' @examples
 #' doc_tokens <- tokenize_docs( c('First entry of the doc,', 'Second entry of the doc.') )
-#' class_counts(doc_tokens)
-class_counts <- function( doc_tokens ) {
-  class_tokens <- flatten( doc_tokens )
-  return( c( 'N' = length( class_tokens ),
-             'V' = length( unique( class_tokens ) ) ) )
+#' token_counts(doc_tokens)
+token_counts <- function( doc_tokens ) {
+  class_tokens <- purrr::flatten( doc_tokens )
+  return( c( 'Ntokens' = length( class_tokens ),
+             'Utokens' = length( unique( class_tokens ) ) ) )
 }
 
