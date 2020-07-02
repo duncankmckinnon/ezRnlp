@@ -1,42 +1,9 @@
-
-fill_term_freq <- function( doc_tokens, term_freq_dict = NULL, label = NULL ) {
-  if( is.null(label) ){
-    for( tokens in doc_tokens ){
-      for( token in tokens ){
-        term_freq_dict$set(token, term_freq_dict$get(token, 0) + 1)
-      }
-    }
-  } else {
-    for( tokens in doc_tokens ){
-      for( token in tokens ){
-        term_freq_dict$set( c( token, label ), term_freq_dict$get( c( token, label ), 0 ) + 1 )
-      } 
-    }
-  }
-  return( term_freq_dict )
+ClassifierGLM <- function( positive, negative ){
+  corpus <- ClassifierCorpus( positive, negative )
+  termFreq <- TermFrequency( corpus )
+  allTokens <- unlist( corpus$tokens )
 }
 
-
-
-fill_conditional_probability <- function( positive, negative, term_freq_dict ){
-  positive_tokens <- flatten(positive)
-  negative_tokens <- flatten(negative)
-  pcounts <- class_counts(positive_tokens)
-  ncounts <- class_counts(negative_tokens)
-  
-  conditional_prob <- function( token, term_freq_dict, label ){
-    return( (term_freq_dict$get(c(token, label), 0) + 1 ) / sum( ifelse( label==1, pcounts, ncounts ) ) )
-  }
-  
-  all_tokens <- unique( c( positive_tokens, negative_tokens ) )
-  names(all_tokens) <- all_tokens
-  probs <- all_tokens %>% sapply(FUN = function(x){
-    return( sapply(c('positive' = 1, 'negative' = 0), 
-           FUN = function(y) 
-             conditional_prob(x, term_freq_dict, y), simplify = TRUE) )
-  }, USE.NAMES = TRUE, simplify = FALSE)
-  return( probs ) 
-}
 
 score_conditional_probability <- function( doc, conditional_probabilities ){
   tokens <- tokenize_text(doc)
