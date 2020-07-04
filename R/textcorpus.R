@@ -28,7 +28,7 @@ Corpus <- function( documents, docnames = NULL ){
 #' @examples
 #' classifierCorpusEx <- ClassifierCorpus(c('what a beautiful day', 'I am happy'), c('what a miserable day', 'I am unhappy'))
 ClassifierCorpus <- function( positive, negative ){
-  corpus <- Corpus( list( positive, negative ), c( 'positive','negative' ) )
+  corpus <- Corpus( list(positive, negative ), c('positive','negative') )
   class( corpus ) <- c( 'Corpus', 'ClassifierCorpus' )
   return( corpus )
 }
@@ -71,9 +71,25 @@ unique.Corpus <- function(obj){
   return( vocab_tokens( obj$tokens ) )
 }
 
+#' Is Corpus
+#' @description check if an object inherits from class Corpus
+#' @param obj an object 
+#'
+#' @return true if the object inherits from Corpus
+#' @export
+#'
+#' @examples
+#' x <- structure(class='Any')
+#' is.Corpus(x) # -> FALSE
+#' class(x) <- c(class(x), 'Corpus')
+#' is.Corpus(x) # -> TRUE
+is.Corpus <- function(obj){
+  return( 'Corpus' %in% class(obj) )
+}
+
 new_corpus <- function( documents ){
   documentLength = length( documents )
-  documentNames <- ifelse(!is.null( names(documents) ), names(documents), 1:documentLength)
+  documentNames <- names( documents )
   documentCounts <- sapply(documents, length, USE.NAMES = TRUE, simplify = TRUE)
   tokens <- sapply(documents, tokenize_docs, USE.NAMES = TRUE, simplify = FALSE)
   tokenCounts <- sapply(tokens, count_tokens, USE.NAMES = TRUE, simplify = FALSE)
@@ -86,7 +102,7 @@ new_corpus <- function( documents ){
 }
 
 
-validate_corpus <- function( documents, docnames ){
+validate_corpus <- function( documents, docnames = NULL ){
   # documents must be a list of character-type elements
   if( !is.list( documents ) ){
     documents <- as.list( documents )
@@ -97,7 +113,7 @@ validate_corpus <- function( documents, docnames ){
   }
   
   # docnames must be either null or a character vector of the same length as documents
-  if( !is.missing( docnames ) && !is.null( docnames ) ) {
+  if( !is.null( docnames ) ) {
     if( !all( is.character( docnames ) ) ){
       stop( 'all docnames must be of type character', call. = FALSE)
     }
@@ -107,6 +123,8 @@ validate_corpus <- function( documents, docnames ){
     }
     
     names(documents) <- docnames
+  } else if( is.null( names(documents) ) ) {
+    names( documents ) <- 1:length(documents)
   }
   
   return( documents )

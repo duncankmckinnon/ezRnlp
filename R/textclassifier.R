@@ -1,9 +1,77 @@
-ClassifierGLM <- function( positive, negative ){
+
+#' Sentiment Classifier
+#' @description a simple sentiment classifier object that takes a set of positive sample text 
+#' and a set of negative sample text, and creates a sentiment classifier.
+#' @param positive character vector with samples of positive text
+#' @param negative character vector with samples of negative text
+#' @param type the classifier model type (default \'linear\')
+#'
+#' @return a SentimentClassifier Object
+#' @export
+#'
+#' @examples
+#' SentimentClassifier(c('some positive text'), c('negative text samples'))
+SentimentClassifier <- function( positive, negative, type = c('linear','bayes')){
+  type <- validate_SentimentClassifier( positive, negative, type )
   corpus <- ClassifierCorpus( positive, negative )
-  termFreq <- TermFrequency( corpus )
-  allTokens <- unlist( corpus$tokens )
+  termFrequency <- TermFrequency( corpus )
+  model <- linearSentimentClassifier( corpus, termFrequency )
+  return( structure( list( 'corpus' = corpus, 'termFrequency' = termFrequency, 'model' = model, 'type' = type), class = 'SentimentClassifier') )
 }
 
+#' Predict Sentiment Classifier
+#' @description a prediction method to assign a sentiment score to a set of text samples from a Sentiment Classifier
+#' @param obj a SentimentClassifier model object
+#' @param newdata a character vector containing text samples to be assessed
+#'
+#' @return Sentiment score predictions of each entry of newdata
+#' @export
+#'
+#' @examples
+#' sentimentEx <- SentimentClassifier(c('some positive text'), c('negative text samples'))
+#' predict(sentimentEx, c('more negative text', most positive text'))
+predict.SentimentClassifier <- function(obj, newdata){
+  # data needs to be a character vector
+  stopifnot(is.character(newdata))
+  n <- length(newdata)  
+  tokens <- tokenize_docs( newdata )
+  # split by model approach
+  if( T || obj$type == 'linear' ){
+    P <- vector(mode = 'numeric', length = n)
+    N <- vector(mode = 'numeric', length = n)
+    position <- 1
+    for(entry in tokens){
+      P[position] <- score_entry(entry, obj$termFrequency$Dict, label='positive')
+      N[position] <- score_entry(entry, obj$termFrequency$Dict, label='negative')
+      position <- position + 1
+    }
+    classifier_data <- data.frame('P'=P,'N'=N)
+    classifier_pred <- predict( obj$model, newdata = classifier_data )
+  }
+  return( classifier_pred )
+}
+
+#' Conditional Probabilities for Word by TermFrequency
+#' @description this function takes a token and calculates the conditional probability 
+#' of the token appearing in each classLabel.  This can then be used to get the likelihood ratio
+#' of the token belonging to each classLabel.
+#' @param token a single token
+#' @param termFrequency an object of class TermFrequency
+#'
+#' @return a conditional probability for the token belonging to each class given it's term frequency
+#' @export
+#'
+#' @examples
+#' corpusEx <- Corpus(list('first' = c('a single entry document'), 'second' = c('a two entry document','with two separate entries')))
+#' termFreqEx <- TermFrequency(corpusEx)
+#' P_token <- conditionalProbability( 'entr', termFreqEx)
+conditionalProbability <- function( token, termFrequency ){
+  P_w <- rep(0, length(termFrequency$Labels))
+  for( classLabel in termFrequency$Labels ){
+    P_w[ classLabel ] <- ( termFreq$Dict$get(c( token, classLabel), 0) + 1 ) / ( sum( termFreq$LabelCounts[[ classLabel ]] ) )
+  }
+  return( P_w )
+}
 
 score_conditional_probability <- function( doc, conditional_probabilities ){
   tokens <- tokenize_text(doc)
@@ -19,67 +87,48 @@ score_conditional_probability <- function( doc, conditional_probabilities ){
 }
 
 score_entry <- function( tokens, term_freq_dict, label = NULL ){
-  indexer <- ifelse( is.null(label), function(x) x, function(x) c( x, label ) )
   score <- 0
-  for( token in tokens ){
-    score <- score + term_freq_dict$get( indexer( token ), 0 )
+  if( is.null( label ) ){
+    for( token in tokens ){
+      score <- score + term_freq_dict$get( token, 0 )
+    }
+  } else {
+    for( token in tokens ){
+      score <- score + term_freq_dict$get( c(token, label), 0 )
+    }
   }
   return( score )
 }
 
 score_entries <- function( doc_tokens, term_freq_dict, label = NULL ) doc_tokens %>% sapply( score_entry, term_freq_dict, label, simplify = T)
 
-get_classifier_data <- function( positive, negative, train_pct = 0.9 ){
-  ind_pos <- 1:length(positive)
-  ind_neg <- length(positive) + 1:length(negative)
-  all_tokens <- c( tokenize_docs(positive), tokenize_docs(negative) )
-  term_freq <- collections::dict()
-  term_freq <- fill_term_freq(all_tokens[ind_pos], term_freq, 1)
-  term_freq <- fill_term_freq(all_tokens[ind_neg], term_freq, 0)
-  
-  positive_scores <- score_entries( all_tokens, term_freq, 1)
-  negative_scores <- score_entries( all_tokens, term_freq, 0)
-  
-  model_data <- data.frame(y = c(rep(1, length(positive)), rep(0, length(negative))),
-                           positive_sentiment = positive_scores,
-                           negative_sentiment = negative_scores)
-  
-  
-  train_ind <- c(sample(1:length(positive), floor(train_pct * length(positive))), sample((length(positive) + 1:length(negative)), floor(train_pct * length(negative))))
-  train <- model_data[train_ind,]
-  test <- model_data[-train_ind,]
-  
-  
-  return( list( 'training' = train, 'test' = test, 'term_freq' = term_freq) )
+linearSentimentClassifier <- function( corpus, termFrequency ){
+  npos <- corpus$documentCounts['positive']
+  nneg <- corpus$documentCounts['negative']
+  Y <- c( rep(1, npos), rep(0, nneg) )
+  P <- vector(mode = 'numeric', length = npos + nneg)
+  N <- vector(mode = 'numeric', length = npos + nneg)
+  position <- 1
+  for( classlabel in c('positive', 'negative')){
+    for(entry in corpus$tokens[[classlabel]]){
+      P[position] <- score_entry(entry, termFrequency$Dict, label='positive')
+      N[position] <- score_entry(entry, termFrequency$Dict, label='negative')
+      position <- position + 1
+    }
+  }
+  classifier_data <- data.frame('Y'=Y,'P'=P,'N'=N)
+  classifier_model <- glm(Y ~ P + N, family=binomial, data=classifier_data)
+  return( classifier_model )
 }
 
-predict_text_classification <- function( text, model, term_freq ){
-  all_tokens <- tokenize_docs(text)
-  positive_scores <- score_entries(all_tokens, term_freq, 1)
-  negative_scores <- score_entries(all_tokens, term_freq, 0)
-  pred_data <- data.frame(positive_sentiment = positive_scores,
-                          negative_sentiment = negative_scores)
-  return( ifelse( predict(model, pred_data) > 0.5, 1, 0 ) )
-}
-
-glm_classifier <- function( train, test ){
-  mod <- glm( y ~ positive_sentiment + negative_sentiment, family = binomial, data = train )
-  pred <- predict(mod, test)
-  
-  train_accuracy <- sum( ifelse( mod$fitted.values > 0.5, 1, 0) == train$y ) / length( train$y )
-  test_accuracy <- sum( ifelse( pred > 0.5, 1, 0 ) == test$y ) / length( test$y )
-  
-  return( list( 'mod' = mod, 
-                'predicted' = pred, 
-                'accuracy' = list( 
-                  'train' = train_accuracy, 
-                  'test' = test_accuracy ) ) )
-}  
-
-
-build_glm_classifier <- function( positive_samples, negative_samples ){
-  term_data <- get_classifier_data( positive_samples, negative_samples )
-  return( glm_classifier( term_data$training, term_data$test ) )
+validate_SentimentClassifier <- function( positive, negative, type ) {
+  stopifnot( is.character(positive), is.character(negative) )
+  if( is.character(type) && all(type %in% c('linear','bayes')) ){
+    type <- type[1]
+  } else {
+    stop('type must be either \'linear\' or \'bayes\'', call. = FALSE)
+  }
+  return( type )
 }
 
 

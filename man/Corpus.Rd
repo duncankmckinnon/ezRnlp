@@ -19,5 +19,5 @@ a representation of a document or set of documents that includes the tokenized d
 document counts, token counts, etc.
 }
 \examples{
-corpusEx <- Corpus(list())
+corpusEx <- Corpus(list('first' = c('a single entry document'), 'second' = c('a two entry document','with two separate entries')))
 }
