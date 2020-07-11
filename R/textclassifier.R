@@ -5,7 +5,7 @@
 #' @param positive character vector with samples of positive text
 #' @param negative character vector with samples of negative text
 #' @param type the classifier model type (default \'linear\')
-#'
+#' @importFrom stats binomial glm predict
 #' @return a SentimentClassifier Object
 #' @export
 #'
@@ -119,6 +119,11 @@ linearSentimentClassifier <- function( corpus, termFrequency ){
   classifier_data <- data.frame('Y'=Y,'P'=P,'N'=N)
   classifier_model <- glm(Y ~ P + N, family=binomial, data=classifier_data)
   return( classifier_model )
+}
+
+naiveBayesSentimentClassifier <- function( corpus, termFrequency ){
+  
+  
 }
 
 validate_SentimentClassifier <- function( positive, negative, type ) {

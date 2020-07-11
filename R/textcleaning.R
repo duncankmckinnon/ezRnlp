@@ -14,7 +14,6 @@
 #' @examples
 #' clean_text('This is a basic line. It contains UNCLEANED text.')
 clean_text <- function( text, stopwords = TRUE ) {
-  
   # remove stopwords only if requested
   text <- ifelse(stopwords==TRUE, tm::removeWords(text, tm::stopwords()), text)
   return( text %>% 

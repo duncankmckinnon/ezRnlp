@@ -2,7 +2,8 @@
 #' Term Frequency 
 #' @description a term frequency hash for the tokens and documents of the corpus
 #' @param corpus an object inheriting from class Corpus
-#'
+#' @importFrom purrr flatten
+#' 
 #' @return a term frequency hash for the tokens and documents in the corpus
 #' @export
 #'
@@ -20,7 +21,7 @@ new_termFrequency <- function( corpus ){
   termfreqDict <- collections::dict()
   labels <- corpus$documentNames
   for( documentName in corpus$documentNames ){
-    documentTokens <- purrr::flatten(corpus$tokens[[documentName]])
+    documentTokens <- flatten(corpus$tokens[[documentName]])
     for( token in documentTokens ) {
       key <- c( token, documentName )
       termfreqDict$set(key, (termfreqDict$get(key, 0) + 1))
