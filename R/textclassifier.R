@@ -28,8 +28,8 @@ SentimentClassifier <- function( positive, negative, type = c('linear','bayes'))
 #' @export
 #'
 #' @examples
-#' sentimentEx <- SentimentClassifier(c('some positive text'), c('negative text samples'))
-#' predict(sentimentEx, c('more negative text', most positive text'))
+#' sentimentEx<-SentimentClassifier(c('some positive text'),c('negative text samples'))
+#' predict(sentimentEx,c('more negative text','most positive text'))
 predict.SentimentClassifier <- function(obj, newdata){
   # data needs to be a character vector
   stopifnot(is.character(newdata))
@@ -41,8 +41,8 @@ predict.SentimentClassifier <- function(obj, newdata){
     N <- vector(mode = 'numeric', length = n)
     position <- 1
     for(entry in tokens){
-      P[position] <- score_entry(entry, obj$termFrequency$Dict, label='positive')
-      N[position] <- score_entry(entry, obj$termFrequency$Dict, label='negative')
+      P[position] <- score_entry(entry, obj$termFrequency, label='positive')
+      N[position] <- score_entry(entry, obj$termFrequency, label='negative')
       position <- position + 1
     }
     classifier_data <- data.frame('P'=P,'N'=N)
@@ -68,7 +68,7 @@ predict.SentimentClassifier <- function(obj, newdata){
 conditionalProbability <- function( token, termFrequency ){
   P_w <- rep(0, length(termFrequency$Labels))
   for( classLabel in termFrequency$Labels ){
-    P_w[ classLabel ] <- ( termFreq$Dict$get(c( token, classLabel), 0) + 1 ) / ( sum( termFreq$LabelCounts[[ classLabel ]] ) )
+    P_w[ classLabel ] <- ( termFrequency$Dict$get(c( token, classLabel), 0) + 1 ) / ( sum( termFrequency$LabelCounts[[ classLabel ]] ) )
   }
   return( P_w )
 }
@@ -86,21 +86,21 @@ score_conditional_probability <- function( doc, conditional_probabilities ){
   return( score )
 }
 
-score_entry <- function( tokens, term_freq_dict, label = NULL ){
+score_entry <- function( tokens, termFrequency, label = NULL ){
   score <- 0
   if( is.null( label ) ){
     for( token in tokens ){
-      score <- score + term_freq_dict$get( token, 0 )
+      score <- score + termFrequency$Dict$get( token, 0 )
     }
   } else {
     for( token in tokens ){
-      score <- score + term_freq_dict$get( c(token, label), 0 )
+      score <- score + termFrequency$Dict$get( c(token, label), 0 )
     }
   }
   return( score )
 }
 
-score_entries <- function( doc_tokens, term_freq_dict, label = NULL ) doc_tokens %>% sapply( score_entry, term_freq_dict, label, simplify = T)
+score_entries <- function( doc_tokens, termFrequency, label = NULL ) doc_tokens %>% sapply( score_entry, termFrequency, label, simplify = T)
 
 linearSentimentClassifier <- function( corpus, termFrequency ){
   npos <- corpus$documentCounts['positive']
@@ -111,8 +111,8 @@ linearSentimentClassifier <- function( corpus, termFrequency ){
   position <- 1
   for( classlabel in c('positive', 'negative')){
     for(entry in corpus$tokens[[classlabel]]){
-      P[position] <- score_entry(entry, termFrequency$Dict, label='positive')
-      N[position] <- score_entry(entry, termFrequency$Dict, label='negative')
+      P[position] <- score_entry(entry, termFrequency, label='positive')
+      N[position] <- score_entry(entry, termFrequency, label='negative')
       position <- position + 1
     }
   }

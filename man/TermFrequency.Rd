@@ -10,12 +10,15 @@ TermFrequency(corpus)
 \item{corpus}{an object inheriting from class Corpus}
 }
 \value{
-a term frequency hash for the tokens and documents in the corpus
+an object of class TermFrequency made up of
+Dict - the hashed tokens with term frequency by document name
+Labels - the document names from the corpus
+LabelCounts - the total counts of tokens for each Label
 }
 \description{
 a term frequency hash for the tokens and documents of the corpus
 }
 \examples{
-corpusEx <- Corpus(list('first' = c('a single entry document'), 'second' = c('a two entry document','with two separate entries')))
+corpusEx<-Corpus(list('first'=c('a single entry document'),'second'=c('a two entry document','with two separate entries')))
 termFreqEx <- TermFrequency(corpusEx)
 }

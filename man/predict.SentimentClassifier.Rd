@@ -17,3 +17,7 @@ Sentiment score predictions of each entry of newdata
 \description{
 a prediction method to assign a sentiment score to a set of text samples from a Sentiment Classifier
 }
+\examples{
+sentimentEx<-SentimentClassifier(c('some positive text'),c('negative text samples'))
+predict(sentimentEx,c('more negative text','most positive text'))
+}
