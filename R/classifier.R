@@ -123,7 +123,6 @@ linearSentimentClassifier <- function( corpus, termFrequency ){
 
 naiveBayesSentimentClassifier <- function( corpus, termFrequency ){
   
-  
 }
 
 validate_SentimentClassifier <- function( positive, negative, type ) {

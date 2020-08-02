@@ -1,12 +1,11 @@
 Package: ezRnlp
-Title: What the Package Does (One Line, Title Case)
+Title: Easy framework for plug and play NLP
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Duncan",
+           family = "McKinnon",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+           email = "duncanmckinnon96@gmail.com")
 Description: What the package does (one paragraph).
 License: MIT + file LICENSE
 Encoding: UTF-8
